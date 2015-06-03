@@ -1,0 +1,51 @@
+#!/bin/bash
+# Utilisation: $0 <chroot_path> <program list>
+rep="BUILD_PATH_ROOT"
+
+# Copie $1 vers $2 en créant les répertoires parents.
+copie_dir ()
+{
+	[ -e "${2}" ] && return
+ 	rep_base=$(dirname "${2}")
+ 	[ -d "${rep_base}" ] || {
+ 		echo "++ mkdir -p ${rep_base}"
+ 		mkdir -p "${rep_base}"
+ 	}
+ 	echo "+ cp -a $1 $2"
+ 	cp -a "$1" "$2"
+}
+ 
+# Copie $1 vers $2 + copie des bibliothèques utilisées.
+copie_ldd ()
+{
+	local src dest file f f_link
+ 	src="$1"
+ 	dest="$2"
+ 	[ -e "${dest}" ] && return
+ 	file=( $(ldd "$src" | awk '{print $3}' | grep '^/') )
+ 	file=( "${file[@]}" $(ldd "$src" | grep '/' | grep -v '=>' | awk '{print $1}') )
+ 	for f in "${file[@]}"
+ 	do
+ 		f_link=$(readlink -f "$f")
+ 		copie_dir "$f_link" "${rep}${f}"
+ 	done
+ 	copie_dir "$src" "${dest}"
+}
+ 
+for prog in "$rep/bin/vmtoolsd" "/bin/bash" "/usr/bin/which" "/bin/date" "/bin/sh" "/usr/bin/dirname" "/usr/bin/basename" "/bin/sed" "/usr/bin/expr"
+do
+ 	prog=$(which "$prog")
+ 	prog_real=$(readlink -f "$prog")
+ 	copie_ldd "$prog_real" "${rep}${prog}"	
+done
+
+#cp the plugins to the right directory for chroot purposes
+cp -ar $rep/lib/open-vm-tools/ $rep$rep/lib/
+cp -a /lib/x86_64-linux-gnu/libnss_compat* $rep/lib/x86_64-linux-gnu/
+cp -a /lib/x86_64-linux-gnu/libnsl* $rep/lib/x86_64-linux-gnu/
+cp -a /usr/lib/libdumbnet* $rep/usr/lib
+mkdir -p $rep/var
+mkdir -p $rep/var/vmw_logs
+mkdir -p $rep/dev
+cp -a /dev/null $rep/dev
+ln -f /etc/localtime $rep/etc/localtime

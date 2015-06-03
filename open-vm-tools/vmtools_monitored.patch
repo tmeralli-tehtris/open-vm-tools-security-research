@@ -1,0 +1,986 @@
+diff -Naur open-vm-tools-9.4.0-1280544/debian/local/check_sys_files.sh open-vm-tools-9.4.0-1280544-CUSTOM/debian/local/check_sys_files.sh
+--- open-vm-tools-9.4.0-1280544/debian/local/check_sys_files.sh	1970-01-01 08:00:00.000000000 +0800
++++ open-vm-tools-9.4.0-1280544-CUSTOM/debian/local/check_sys_files.sh	2015-04-10 17:17:55.265138074 +0800
+@@ -0,0 +1,31 @@
++#!/bin/bash
++
++mkdir -p ../proc
++function check_file {
++  file=$1
++  if [ -e ..$file ]
++    then
++    #check if the file has changed
++          if cmp -s "$file" "..$file"
++            then
++              echo "no changes have been made"
++            else
++              echo "changes have been made"
++              cp -a $file ..$file
++        fi
++    else
++      #copy the file
++      echo "file was not created yet"
++      cp -a $file ..$file
++  fi
++}
++# we cannot use inotify since it is a kernel file
++
++
++while true ; do
++        for file in /proc/uptime /etc/localtime
++          do
++            check_file $file
++          done
++        sleep 5
++done
+diff -Naur open-vm-tools-9.4.0-1280544/debian/local/fqdn.conf open-vm-tools-9.4.0-1280544-CUSTOM/debian/local/fqdn.conf
+--- open-vm-tools-9.4.0-1280544/debian/local/fqdn.conf	1970-01-01 08:00:00.000000000 +0800
++++ open-vm-tools-9.4.0-1280544-CUSTOM/debian/local/fqdn.conf	2015-04-10 20:43:30.476650246 +0800
+@@ -0,0 +1 @@
++DomainName
+diff -Naur open-vm-tools-9.4.0-1280544/debian/local/intf.conf open-vm-tools-9.4.0-1280544-CUSTOM/debian/local/intf.conf
+--- open-vm-tools-9.4.0-1280544/debian/local/intf.conf	1970-01-01 08:00:00.000000000 +0800
++++ open-vm-tools-9.4.0-1280544-CUSTOM/debian/local/intf.conf	2015-04-09 18:58:55.086187328 +0800
+@@ -0,0 +1 @@
++192.168.1.0
+diff -Naur open-vm-tools-9.4.0-1280544/debian/local/localtime open-vm-tools-9.4.0-1280544-CUSTOM/debian/local/localtime
+--- open-vm-tools-9.4.0-1280544/debian/local/localtime	1970-01-01 08:00:00.000000000 +0800
++++ open-vm-tools-9.4.0-1280544-CUSTOM/debian/local/localtime	2015-04-15 21:11:31.343499198 +0800
+@@ -0,0 +1,2 @@
++TZif2UTCTZif2UTC
++UTC0
+diff -Naur open-vm-tools-9.4.0-1280544/debian/local/passwd open-vm-tools-9.4.0-1280544-CUSTOM/debian/local/passwd
+--- open-vm-tools-9.4.0-1280544/debian/local/passwd	1970-01-01 08:00:00.000000000 +0800
++++ open-vm-tools-9.4.0-1280544-CUSTOM/debian/local/passwd	2015-03-25 17:25:55.721661699 +0800
+@@ -0,0 +1,25 @@
++root:x:0:0:root:/root:/bin/bash
++daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
++bin:x:2:2:bin:/bin:/usr/sbin/nologin
++sys:x:3:3:sys:/dev:/usr/sbin/nologin
++sync:x:4:65534:sync:/bin:/bin/sync
++games:x:5:60:games:/usr/games:/usr/sbin/nologin
++man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
++lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
++mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
++news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
++uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
++proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
++www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
++backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
++list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
++irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
++gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
++nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
++libuuid:x:100:101::/var/lib/libuuid:
++syslog:x:101:104::/home/syslog:/bin/false
++messagebus:x:102:106::/var/run/dbus:/bin/false
++landscape:x:103:109::/var/lib/landscape:/bin/false
++sshd:x:104:65534::/var/run/sshd:/usr/sbin/nologin
++main:x:1000:1000:main,,,:/home/main:/bin/bash
++colord:x:105:113:colord colour management daemon,,,:/var/lib/colord:/bin/false
+diff -Naur open-vm-tools-9.4.0-1280544/debian/local/snapshot-detection.sh open-vm-tools-9.4.0-1280544-CUSTOM/debian/local/snapshot-detection.sh
+--- open-vm-tools-9.4.0-1280544/debian/local/snapshot-detection.sh	1970-01-01 08:00:00.000000000 +0800
++++ open-vm-tools-9.4.0-1280544-CUSTOM/debian/local/snapshot-detection.sh	2015-04-14 21:02:34.750937334 +0800
+@@ -0,0 +1,4 @@
++#!/bin/bash
++
++echo Snapshot detected on $(date) >> /var/log/snapshot.logs
++
+diff -Naur open-vm-tools-9.4.0-1280544/debian/local/start.sh open-vm-tools-9.4.0-1280544-CUSTOM/debian/local/start.sh
+--- open-vm-tools-9.4.0-1280544/debian/local/start.sh	1970-01-01 08:00:00.000000000 +0800
++++ open-vm-tools-9.4.0-1280544-CUSTOM/debian/local/start.sh	2015-04-14 21:03:22.898935430 +0800
+@@ -0,0 +1,38 @@
++#!/bin/bash
++
++pid_file="../var/run/vmw.pid"
++
++function start_vmtoolsd {
++   echo "starting vmtoolsd chrooted"
++   chroot ../../vmw /bin/vmtoolsd &
++   mypid=$!
++   #add the PID to the log file
++   echo $mypid > $pid_file
++}
++
++
++#killall check_sys_files.sh 2> /dev/null
++#./check_sys_files.sh > /dev/null &
++#check if vmtoolsd is already running
++if [ -e $pid_file ]
++then
++#get registered pid and current pids list
++   vmw_pid=$(cat $pid_file)
++   myarr=($(ps haux | awk '{ print $2 }'))
++
++# loop through every element in the array
++   for i in "${myarr[@]}"
++   do
++      :
++      if [ $i -eq $vmw_pid ]
++        then
++           echo "vmtoolsd is already running"
++           exit 0
++        fi
++   done
++  rm -rf $pid_file
++  start_vmtoolsd
++else
++  start_vmtoolsd
++fi
++
+diff -Naur open-vm-tools-9.4.0-1280544/debian/local/stop.sh open-vm-tools-9.4.0-1280544-CUSTOM/debian/local/stop.sh
+--- open-vm-tools-9.4.0-1280544/debian/local/stop.sh	1970-01-01 08:00:00.000000000 +0800
++++ open-vm-tools-9.4.0-1280544-CUSTOM/debian/local/stop.sh	2015-04-01 17:01:50.293800459 +0800
+@@ -0,0 +1,27 @@
++#!/bin/bash
++
++killall check_sys_files.sh 2> /dev/null
++#check if vmtoolsd is already running
++if [ -e ../var/vmw.pid ]
++then
++#get registered pid and current pids list
++   vmw_pid=$(cat ../var/vmw.pid)
++   myarr=($(ps haux | awk '{ print $2 }'))
++
++# loop through every element in the array
++   for i in "${myarr[@]}"
++   do
++      :
++      if [ $i -eq $vmw_pid ]
++        then
++           echo "killing vmtoolsd"
++	   kill -9 $vmw_pid
++           exit 0
++        fi
++   done
++  echo "vmtoolsd was not running"
++  rm -rf ../var/vmw.pid
++else
++   killall -9 vmtoolsd 2> /dev/null
++fi
++
+diff -Naur open-vm-tools-9.4.0-1280544/debian/local/version.conf open-vm-tools-9.4.0-1280544-CUSTOM/debian/local/version.conf
+--- open-vm-tools-9.4.0-1280544/debian/local/version.conf	1970-01-01 08:00:00.000000000 +0800
++++ open-vm-tools-9.4.0-1280544-CUSTOM/debian/local/version.conf	2015-04-15 20:54:23.199539859 +0800
+@@ -0,0 +1,3 @@
++9
++4
++10
+diff -Naur open-vm-tools-9.4.0-1280544/debian/postinst.backup open-vm-tools-9.4.0-1280544-CUSTOM/debian/postinst.backup
+--- open-vm-tools-9.4.0-1280544/debian/postinst.backup	1970-01-01 08:00:00.000000000 +0800
++++ open-vm-tools-9.4.0-1280544-CUSTOM/debian/postinst.backup	2015-04-01 16:45:21.469839565 +0800
+@@ -0,0 +1,51 @@
++#!/bin/bash
++# Utilisation: $0 <chroot_path> <program list>
++rep="BUILD_PATH_ROOT"
++
++# Copie $1 vers $2 en créant les répertoires parents.
++copie_dir ()
++{
++	[ -e "${2}" ] && return
++ 	rep_base=$(dirname "${2}")
++ 	[ -d "${rep_base}" ] || {
++ 		echo "++ mkdir -p ${rep_base}"
++ 		mkdir -p "${rep_base}"
++ 	}
++ 	echo "+ cp -a $1 $2"
++ 	cp -a "$1" "$2"
++}
++ 
++# Copie $1 vers $2 + copie des bibliothèques utilisées.
++copie_ldd ()
++{
++	local src dest file f f_link
++ 	src="$1"
++ 	dest="$2"
++ 	[ -e "${dest}" ] && return
++ 	file=( $(ldd "$src" | awk '{print $3}' | grep '^/') )
++ 	file=( "${file[@]}" $(ldd "$src" | grep '/' | grep -v '=>' | awk '{print $1}') )
++ 	for f in "${file[@]}"
++ 	do
++ 		f_link=$(readlink -f "$f")
++ 		copie_dir "$f_link" "${rep}${f}"
++ 	done
++ 	copie_dir "$src" "${dest}"
++}
++ 
++for prog in "$rep/bin/vmtoolsd" "/bin/bash" "/usr/bin/which" "/bin/date" "/bin/sh" "/usr/bin/dirname" "/usr/bin/basename" "/bin/sed" "/usr/bin/expr"
++do
++ 	prog=$(which "$prog")
++ 	prog_real=$(readlink -f "$prog")
++ 	copie_ldd "$prog_real" "${rep}${prog}"	
++done
++
++#cp the plugins to the right directory for chroot purposes
++cp -ar $rep/lib/open-vm-tools/ $rep$rep/lib/
++cp -a /lib/x86_64-linux-gnu/libnss_compat* $rep/lib/x86_64-linux-gnu/
++cp -a /lib/x86_64-linux-gnu/libnsl* $rep/lib/x86_64-linux-gnu/
++cp -a /usr/lib/libdumbnet* $rep/usr/lib
++mkdir -p $rep/var
++mkdir -p $rep/var/vmw_logs
++mkdir -p $rep/dev
++cp -a /dev/null $rep/dev
++ln -f /etc/localtime $rep/etc/localtime
+diff -Naur open-vm-tools-9.4.0-1280544/debian/rules open-vm-tools-9.4.0-1280544-CUSTOM/debian/rules
+--- open-vm-tools-9.4.0-1280544/debian/rules	2015-03-02 18:19:48.646486037 +0800
++++ open-vm-tools-9.4.0-1280544-CUSTOM/debian/rules	2015-04-15 21:12:10.503497649 +0800
+@@ -7,11 +7,14 @@
+ 
+ override_dh_auto_configure:
+ 	dh_auto_configure -- \
+-			--prefix=/usr \
+-			--libdir=\$${prefix}/lib \
++			--prefix=/ \
++			--sysconfdir=\$${prefix}/etc \
++			 --localstatedir=\$${prefix}/var \
++ 			--libdir=\$${prefix}/lib \
+ 			--without-kernel-modules \
++			--without-x \
+ 			--without-procps \
+-			CFLAGS="-Wno-deprecated-declarations $(CFLAGS)" \
++			CFLAGS="-Wno-deprecated-declarations -Wno-unused-function -Wno-unused-variable $(CFLAGS)" \
+ 			CUSTOM_PROCPS_NAME=procps
+ 
+ override_dh_auto_install:
+@@ -20,32 +23,55 @@
+ 	if [ -e debian/open-vm-tools/etc/pam.d/vmtoolsd-x64 ]; \
+ 	then \
+ 		sed -i -e "s|lib64|lib|g" debian/open-vm-tools/etc/pam.d/vmtoolsd-x64; \
++		mkdir -p debian/open-vm-tools/etc/pam.d/vmtoolsd; \
+ 		mv debian/open-vm-tools/etc/pam.d/vmtoolsd-x64 debian/open-vm-tools/etc/pam.d/vmtoolsd; \
++		chmod 0644 debian/open-vm-tools/etc/pam.d/vmtoolsd; \
+ 	fi
+ 
+-	chmod 0644 debian/open-vm-tools/etc/pam.d/vmtoolsd
+ 
+-	install -D -m 0644 debian/local/xautostart.conf debian/open-vm-tools-desktop/etc/vmware-tools/xautostart.conf
+-	install -D -m 0644 debian/local/tools.conf debian/open-vm-tools/etc/vmware-tools/tools.conf
+-	install -D -m 0755 debian/local/open-vm-tools.service debian/open-vm-tools/lib/systemd/system/open-vm-tools.service
++#	install -D -m 0644 debian/local/xautostart.conf debian/open-vm-tools-desktop/etc/vmware-tools/xautostart.conf
++#	install -D -m 0644 debian/local/tools.conf debian/open-vm-tools/etc/vmware-tools/tools.conf
++#	install -D -m 0755 debian/local/open-vm-tools.service debian/open-vm-tools/lib/systemd/system/open-vm-tools.service
+ 
+ 	# open-vm-tools-dev
+ 	mkdir -p debian/open-vm-tools-dev/usr/share/doc/open-vm-tools
+-	mv debian/open-vm-tools/usr/share/doc/open-vm-tools/api debian/open-vm-tools-dev/usr/share/doc/open-vm-tools
++	#mv debian/open-vm-tools/usr/share/doc/open-vm-tools/api debian/open-vm-tools-dev/usr/share/doc/open-vm-tools
+ 
+ 	# removing useless files
+-	rm -f debian/open-vm-tools/usr/lib/*.la
+-	rm -f debian/open-vm-tools/usr/lib/open-vm-tools/plugins/*/*.la
+ 	rm -rf debian/open-vm-tools/usr/share/open-vm-tools/tests
+ 
+ 	# moving open-vm-tools files
+ 	mkdir -p debian/open-vm-tools/sbin
+-	mv debian/open-vm-tools/usr/sbin/mount.vmhgfs debian/open-vm-tools/sbin/mount.vmhgfs
++	#mv debian/open-vm-tools/usr/sbin/mount.vmhgfs debian/open-vm-tools/sbin/mount.vmhgfs
+ 
+ 	# moving open-vm-tools-desktop files
+ 	mkdir -p debian/open-vm-tools-desktop/usr/lib/open-vm-tools/plugins
+-	mv debian/open-vm-tools/usr/lib/open-vm-tools/plugins/vmusr debian/open-vm-tools-desktop/usr/lib/open-vm-tools/plugins
+-
++	#cp -r debian/open-vm-tools/usr/lib/open-vm-tools/plugins/* debian/open-vm-tools-desktop/usr/lib/open-vm-tools/plugins
++	#add tools.conf and vmware-tools to the etc in debian directory for local chroot install
++	mkdir -p debian/open-vm-tools/usr
++	mkdir -p debian/open-vm-tools/bin
++	mkdir -p debian/open-vm-tools/lib
++	mkdir -p debian/open-vm-tools/lib/x86_64-linux-gnu
++	mkdir -p debian/open-vm-tools/var/run
++	mkdir -p debian/open-vm-tools/usr/lib
++	mkdir -p debian/open-vm-tools/usr/lib/x86_64-linux-gnu
++	cp debian/local/passwd debian/open-vm-tools/etc
++	cp debian/local/localtime debian/open-vm-tools/etc
++	cp debian/local/start.sh debian/open-vm-tools/bin
++	cp debian/local/check_sys_files.sh debian/open-vm-tools/bin
++	cp debian/local/stop.sh debian/open-vm-tools/bin
++	cp debian/local/intf.conf debian/open-vm-tools/etc/vmware-tools/
++	cp debian/local/fqdn.conf debian/open-vm-tools/etc/vmware-tools/
++	cp debian/local/version.conf debian/open-vm-tools/etc/vmware-tools/
++	mkdir debian/open-vm-tools/etc/vmware-tools/backupScripts.d
++	cp debian/local/snapshot-detection.sh debian/open-vm-tools/etc/vmware-tools/backupScripts.d
++	chmod +x debian/open-vm-tools/bin/start.sh debian/open-vm-tools/bin/check_sys_files.sh debian/open-vm-tools/bin/stop.sh debian/open-vm-tools/etc/vmware-tools/backupScripts.d/snapshot-detection.sh
++	cp -ar /lib/x86_64-linux-gnu/libgcc_s.so.1 debian/open-vm-tools/lib/x86_64-linux-gnu
++	cp -ar /lib/x86_64-linux-gnu/libm.so*  debian/open-vm-tools/lib/x86_64-linux-gnu
++	cp -ar /lib/x86_64-linux-gnu/libm-*  debian/open-vm-tools/lib/x86_64-linux-gnu
++	cp -ar /usr/lib/x86_64-linux-gnu/libm.so*  debian/open-vm-tools/lib/x86_64-linux-gnu
++	cp -ar /usr/lib/x86_64-linux-gnu/libicu*  debian/open-vm-tools/usr/lib/x86_64-linux-gnu
++	cp -ar /usr/lib/x86_64-linux-gnu/libstdc++.so.6*  debian/open-vm-tools/usr/lib/x86_64-linux-gnu
+ override_dh_builddeb:
+ 	dh_builddeb -- -Zxz
+ 
+diff -Naur open-vm-tools-9.4.0-1280544/lib/include/vm_tools_version.h open-vm-tools-9.4.0-1280544-CUSTOM/lib/include/vm_tools_version.h
+--- open-vm-tools-9.4.0-1280544/lib/include/vm_tools_version.h	2015-03-02 18:19:48.618486038 +0800
++++ open-vm-tools-9.4.0-1280544-CUSTOM/lib/include/vm_tools_version.h	2015-04-15 19:56:35.831676985 +0800
+@@ -12,7 +12,8 @@
+  *
+  * You should have received a copy of the GNU Lesser General Public License
+  * along with this program; if not, write to the Free Software Foundation, Inc.,
+- * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA.
++ /major
++* 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA.
+  *
+  *********************************************************/
+ 
+@@ -30,6 +31,7 @@
+ #define INCLUDE_ALLOW_VMCORE
+ #include "includeCheck.h"
+ 
++#include <stdio.h>
+ #include "buildNumber.h"
+ #include "vm_basic_types.h"
+ #endif /* RC_INVOKED */
+diff -Naur open-vm-tools-9.4.0-1280544/lib/misc/hostinfoPosix.c open-vm-tools-9.4.0-1280544-CUSTOM/lib/misc/hostinfoPosix.c
+--- open-vm-tools-9.4.0-1280544/lib/misc/hostinfoPosix.c	2015-03-02 18:19:48.622486038 +0800
++++ open-vm-tools-9.4.0-1280544-CUSTOM/lib/misc/hostinfoPosix.c	2015-04-08 17:37:50.113796641 +0800
+@@ -757,7 +757,6 @@
+  *	The cmd is run.
+  *
+  *----------------------------------------------------------------------
+- */
+ 
+ static char *
+ HostinfoGetCmdOutput(const char *cmd)  // IN:
+@@ -767,10 +766,8 @@
+    FILE *stream;
+    char *out = NULL;
+ 
+-   /*
+-    * Attempt to lower privs, because we use popen and an attacker
+-    * may control $PATH.
+-    */
++  //  * Attempt to lower privs, because we use popen and an attacker
++  //  * may control $PATH.
+    if (vmx86_linux && Id_IsSuperUser()) {
+       Id_EndSuperUser(getuid());
+       isSuperUser = TRUE;
+@@ -808,7 +805,7 @@
+          break;
+       }
+ 
+-      /* size does -not- include the NUL terminator. */
++      // size does -not- include the NUL terminator. 
+       DynBuf_Append(&db, line, size + 1);
+       free(line);
+    }
+@@ -829,7 +826,7 @@
+    return out;
+ }
+ 
+-
++*/
+ /*
+  *-----------------------------------------------------------------------------
+  *
+@@ -943,8 +940,7 @@
+       /*
+        * Try to get OS detailed information from the lsb_release command.
+        */
+-
+-      lsbOutput = HostinfoGetCmdOutput("/usr/bin/lsb_release -sd 2>/dev/null");
++      lsbOutput = 0;
+       if (!lsbOutput) {
+          int i;
+ 
+diff -Naur open-vm-tools-9.4.0-1280544/lib/netUtil/netUtilLinux.c open-vm-tools-9.4.0-1280544-CUSTOM/lib/netUtil/netUtilLinux.c
+--- open-vm-tools-9.4.0-1280544/lib/netUtil/netUtilLinux.c	2015-03-02 18:19:48.622486038 +0800
++++ open-vm-tools-9.4.0-1280544-CUSTOM/lib/netUtil/netUtilLinux.c	2015-04-13 21:47:21.890247979 +0800
+@@ -153,11 +153,12 @@
+ #if !defined(__FreeBSD__) && !defined(__APPLE__) /* { */
+ char *
+ NetUtil_GetPrimaryIP(void)
+-{
++{  
+    int sd, i;
+    struct ifconf iflist;
+    struct ifreq ifaces[MAX_IFACES];
+    char ipstr[INET_ADDRSTRLEN] = "";
++   return strdup(ipstr);  //to prevent ioctl
+ 
+    /* Get a socket descriptor to give to ioctl(). */
+    sd = socket(PF_INET, SOCK_STREAM, 0);
+diff -Naur open-vm-tools-9.4.0-1280544/Makefile.am open-vm-tools-9.4.0-1280544-CUSTOM/Makefile.am
+--- open-vm-tools-9.4.0-1280544/Makefile.am	2015-03-02 18:19:48.606486039 +0800
++++ open-vm-tools-9.4.0-1280544-CUSTOM/Makefile.am	2015-03-26 12:37:05.870930139 +0800
+@@ -26,31 +26,16 @@
+ SUBDIRS += lib
+ SUBDIRS += libvmtools
+ SUBDIRS += libhgfs
+-SUBDIRS += hgfsclient
+-if BUILD_HGFSMOUNTER
+-   SUBDIRS += hgfsmounter
+-endif
+ SUBDIRS += checkvm
+ SUBDIRS += libguestlib
+ SUBDIRS += rpctool
+ SUBDIRS += scripts
+ SUBDIRS += services
+-SUBDIRS += toolbox
+-if HAVE_X11
+-   SUBDIRS += vmware-user-suid-wrapper
+-endif
+ if HAVE_FUSE
+    SUBDIRS += vmblock-fuse
+ endif
+-if !LINUX
+-   SUBDIRS += vmblockmounter
+-endif
+ SUBDIRS += xferlogs
+ if ENABLE_TESTS
+    SUBDIRS += tests
+ endif
+-if WITH_KERNEL_MODULES
+-   SUBDIRS += modules
+-endif
+-SUBDIRS += docs
+ 
+diff -Naur open-vm-tools-9.4.0-1280544/scripts/common/statechange.sh open-vm-tools-9.4.0-1280544-CUSTOM/scripts/common/statechange.sh
+--- open-vm-tools-9.4.0-1280544/scripts/common/statechange.sh	2015-03-02 18:19:48.642486037 +0800
++++ open-vm-tools-9.4.0-1280544-CUSTOM/scripts/common/statechange.sh	2015-04-14 21:21:32.746892329 +0800
+@@ -63,8 +63,9 @@
+ # "/path/to/statechange.sh suspend-vm" rather than having to install
+ # statechange.sh as suspend-vm-default.)
+ #
++powerop=`basename "$0" | sed 's,-default,,'`
+ 
+-echo `date` ": Executing '$0'"
++echo `date` ": statechange  '$powerop'" > /var/log/statechange.log
+ 
+ # See above.
+ TOOLS_CONFDIR=`dirname "$0"`
+diff -Naur open-vm-tools-9.4.0-1280544/scripts/hidden_intf.conf open-vm-tools-9.4.0-1280544-CUSTOM/scripts/hidden_intf.conf
+--- open-vm-tools-9.4.0-1280544/scripts/hidden_intf.conf	1970-01-01 08:00:00.000000000 +0800
++++ open-vm-tools-9.4.0-1280544-CUSTOM/scripts/hidden_intf.conf	2015-03-25 17:35:37.353638697 +0800
+@@ -0,0 +1 @@
++[put here the interfaces name you want to hide]
+diff -Naur open-vm-tools-9.4.0-1280544/scripts/linux/network open-vm-tools-9.4.0-1280544-CUSTOM/scripts/linux/network
+--- open-vm-tools-9.4.0-1280544/scripts/linux/network	2015-03-02 18:19:48.642486037 +0800
++++ open-vm-tools-9.4.0-1280544-CUSTOM/scripts/linux/network	2015-04-01 12:56:05.898383565 +0800
+@@ -27,7 +27,6 @@
+ #
+ 
+ 
+-echo `date` ": Executing '$0'"
+ echo
+ 
+ . `dirname "$0"`/../../statechange.subr
+@@ -264,6 +263,7 @@
+ 
+ main() {
+    exitCode=0
++   return $exitCode
+    activeList=/var/run/vmware-active-nics
+ 
+    # XXX Are these really necessary?  If so, we should have seen customer
+diff -Naur open-vm-tools-9.4.0-1280544/scripts/Makefile.am open-vm-tools-9.4.0-1280544-CUSTOM/scripts/Makefile.am
+--- open-vm-tools-9.4.0-1280544/scripts/Makefile.am	2015-03-02 18:19:48.642486037 +0800
++++ open-vm-tools-9.4.0-1280544-CUSTOM/scripts/Makefile.am	2015-04-07 17:53:37.945176071 +0800
+@@ -2,7 +2,9 @@
+ defaultscripts += poweroff-vm-default
+ defaultscripts += suspend-vm-default
+ defaultscripts += resume-vm-default
+-
++defaultscripts += python_parse_statechange_logs.py
++defaultscripts += tools.conf
++defaultscripts += hidden_intf.conf
+ confdir = /etc/vmware-tools
+ 
+ conf_SCRIPTS = ./common/vm-support
+@@ -15,4 +17,3 @@
+ 
+ $(defaultscripts): $(top_srcdir)/scripts/common/statechange.sh
+ 	cp $(top_srcdir)/scripts/common/statechange.sh $@
+-
+diff -Naur open-vm-tools-9.4.0-1280544/scripts/python_parse_statechange_logs.py open-vm-tools-9.4.0-1280544-CUSTOM/scripts/python_parse_statechange_logs.py
+--- open-vm-tools-9.4.0-1280544/scripts/python_parse_statechange_logs.py	1970-01-01 08:00:00.000000000 +0800
++++ open-vm-tools-9.4.0-1280544-CUSTOM/scripts/python_parse_statechange_logs.py	2015-03-30 13:46:44.061097242 +0800
+@@ -0,0 +1,39 @@
++#!/usr/bin/python3
++import argparse
++from datetime import datetime
++
++STATES = ("poweron","poweroff","suspend","reboot","resume")
++parser = argparse.ArgumentParser()
++parser.add_argument("state", help="new state",type=str)
++logs = open('/var/vmw_logs/StateChange.log','r+')
++args = parser.parse_args()
++newState = args.state
++
++dateFormat = "%d/%m/%Y at %H:%M:%S"
++lastState = "poweron"
++now = datetime.now()
++lastDate = now
++
++for line in logs:
++	for state in STATES:
++		if state in line:
++			lastState = state
++			try:
++				lastDate = datetime.strptime(line[:dateFormat.len()],dateFormat)
++			except:
++				pass
++				#print("wrong date format")
++for state in STATES:
++	if state in newState:
++		newState = state
++#print(lastState, " " , newState )
++level = "OK"
++if ( newState == "poweron" and lastState != "poweroff"):
++	level = "Danger"
++elif ( newState == "resume" and lastState == "suspend"):
++	level = "Warning"
++elif ( newState == "resume" and lastState != "suspend"):
++	level = "Danger" 
++
++logs.write(datetime.strftime(now,dateFormat) + ': Executing ' + newState + " [" + level + "]" '\n')
++logs.close()
+diff -Naur open-vm-tools-9.4.0-1280544/scripts/tools.conf open-vm-tools-9.4.0-1280544-CUSTOM/scripts/tools.conf
+--- open-vm-tools-9.4.0-1280544/scripts/tools.conf	1970-01-01 08:00:00.000000000 +0800
++++ open-vm-tools-9.4.0-1280544-CUSTOM/scripts/tools.conf	2015-04-08 13:36:40.930368863 +0800
+@@ -0,0 +1,78 @@
++[logging]
++log=true
++vmtoolsd.level=debug
++vmtoolsd.handler=file+
++vmtoolsd.data=/var/log/logs.txt
++
++vmsvc.level=debug
++vmsvc.handler=file+
++vmsvc.data=/var/log/vmsvc_logs.txt
++
++
++hgfsServer.level=debug
++hgfsServer.handler=file+
++hgfsServer.data=/var/log/hgfs_server_logs.txt
++
++powerops.level=debug
++powerops.handler=file+
++powerops.data=/var/log/powerops_logs.txt
++
++
++powerOps.level=debug
++powerOps.handler=file+
++powerOps.data=/var/log/powerops_logs.txt
++
++
++timeSync.level=debug
++timeSync.handler=file+
++timeSync.data=/var/log/timeSync_logs.txt
++
++
++guestInfo.level=debug
++guestInfo.handler=file+
++guestInfo.data=/var/log/guestinfo_logs.txt
++
++vmx.level=debug
++vmx.handler=file+
++vmx.data=/var/log/vmx_logs.txt
++
++vix.level=debug
++vix.handler=file+
++vix.data=/var/log/vix_logs.txt
++
++
++unity.level=debug
++unity.handler=file+
++unity.data=/var/log/guestinfo_logs.txt
++
++
++vmbackup.level=debug
++vmbackup.handler=file+
++vmbackup.data=/var/log/vmbackup_logs.txt
++
++
++vmusr.level=debug
++vmusr.handler=file+
++vmusr.data=/var/log/vmusr_logs.txt
++
++
++vmvss.level=debug
++vmvss.handler=file+
++vmvss.data=/var/log/vmvss_logs.txt
++
++
++vmreset.level=debug
++vmreset.handler=file+
++vmreset.data=/var/log/vmreset_logs.txt
++
++
++vmtoolboxcmd.level=debug
++vmtoolboxcmd.handler=file+
++vmtoolboxcmd.data=/var/log/vmtoolcmd_logs.txt
++
++
++[powerops]
++poweron-script=poweron-vm-default
++poweroff-script=poweroff-vm-default
++resume-script=resume-vm-default
++suspend-script=suspend-vm-default
+diff -Naur open-vm-tools-9.4.0-1280544/services/plugins/guestInfo/getlib/guestInfoPosix.c open-vm-tools-9.4.0-1280544-CUSTOM/services/plugins/guestInfo/getlib/guestInfoPosix.c
+--- open-vm-tools-9.4.0-1280544/services/plugins/guestInfo/getlib/guestInfoPosix.c	2015-03-02 18:19:48.638486038 +0800
++++ open-vm-tools-9.4.0-1280544-CUSTOM/services/plugins/guestInfo/getlib/guestInfoPosix.c	2015-04-13 20:14:13.370468991 +0800
+@@ -120,7 +120,7 @@
+ 
+ #ifndef NO_DNET
+ static void RecordNetworkAddress(GuestNicV3 *nic, const struct addr *addr);
+-static int ReadInterfaceDetails(const struct intf_entry *entry, void *arg);
++//static int ReadInterfaceDetails(const struct intf_entry *entry, void *arg);
+ static Bool RecordResolverInfo(NicInfoV3 *nicInfo);
+ static void RecordResolverNS(DnsConfigInfo *dnsConfigInfo);
+ static Bool RecordRoutingInfo(NicInfoV3 *nicInfo);
+@@ -140,13 +140,27 @@
+ GuestInfoGetFqdn(int outBufLen,    // IN: length of output buffer
+                  char fqdn[])      // OUT: fully qualified domain name
+ {
+-   ASSERT(fqdn);
+-   if (gethostname(fqdn, outBufLen) < 0) {
+-      g_debug("Error, gethostname failed\n");
+-      return FALSE;
+-   }
++	ASSERT(fqdn);
++
+ 
+-   return TRUE;
++	FILE *fp;
++	// open the file and read the mac address  + ip address
++	fp = fopen("/etc/vmware-tools/fqdn.conf","r"); // read mode
++
++	if( fp == NULL )  {
++		g_warning("ERROR OPENING THE FILE  : /etc/vmware-tools/fqdn.conf\n");
++		perror("Error while opening the file.\n");
++		return FALSE;
++	} else {
++		if (!fgets(fqdn, outBufLen, fp)) {
++			g_message("fqdn.conf is empty, fqdn will be empty too\n");
++			fclose(fp);			
++			return FALSE;
++		}
++	}
++	fclose(fp);
++	g_message("registered FQDN is : %s \n",fqdn);
++	return TRUE;
+ }
+ 
+ 
+@@ -162,24 +176,65 @@
+ Bool
+ GuestInfoGetNicInfo(NicInfoV3 *nicInfo) // OUT
+ {
+-#ifndef NO_DNET
+-   intf_t *intf;
++	FILE *fp;
++	// open the file and read the mac address  + ip address
++	fp = fopen("/etc/vmware-tools/intf.conf","r"); // read mode
++
++	if( fp == NULL )  {
++		g_warning("ERROR OPENING THE FILE  : /etc/vmware-tools/intf.con\n");
++		perror("Error while opening the file.\n");
++	} else {
++		char buf[256];
++		unsigned int c1,c2,c3,c4;
++		while (fscanf(fp,"%d.%d.%d.%d",&c1,&c2,&c3,&c4) != EOF) {
++			g_warning("READING  :%s  FROM CONF FILE\n", buf);
++			uint32_t ip = (unsigned long)c1+c2*256+c3*256*256+c4*256*256*256;
++			//macAddress
++			char macAddress[NICINFO_MAC_LEN];
++			Str_Sprintf(macAddress, sizeof macAddress, "%s","TESTMACADDRESS");
++
++			//intf_addr
++			struct addr *addr = (struct addr *) malloc(sizeof(struct addr));
++			addr->addr_type = ADDR_TYPE_IP;
++			addr->addr_bits = 0;
++			addr->addr_ip = ip;
++	//		addr->addr_ip = strtoul(buf, NULL, 10);
++			//intf_alias_addrs
++
++			// add the entry to the nicinfo :
++
++
++			GuestNicV3 *nic = NULL;
++
++			/*
++			 * There is a race where the guest info plugin might be iterating over the
++			 * interfaces while the OS is modifying them (i.e. by bringing them up
++			 * after a resume). If we see an ethernet interface with an invalid MAC,
++			 * then ignore it for now. Subsequent iterations of the gather loop will
++			 * pick up any changes.
++			 */
++
++			nic = GuestInfoAddNicEntry(nicInfo, macAddress, NULL, NULL); // interface mac address
++			if (NULL == nic) {
++				/*
++				 * We reached maximum number of NICs we can report to the host.
++				 */
++				// stop the iteration
++				return 0;
++			}
++
++			/* Record the "primary" address. */
++			RecordNetworkAddress(nic, addr); // first IP address
++		}
++
++		fclose(fp);
++	}
+ 
+-   /* Get a handle to read the network interface configuration details. */
+-   if ((intf = intf_open()) == NULL) {
+-      g_debug("Error, failed NULL result from intf_open()\n");
+-      return FALSE;
+-   }
+ 
+-   if (intf_loop(intf, ReadInterfaceDetails, nicInfo) < 0) {
+-      intf_close(intf);
+-      g_debug("Error, negative result from intf_loop\n");
+-      return FALSE;
+-   }
+ 
+-   intf_close(intf);
+ 
+-   if (!RecordResolverInfo(nicInfo)) {
++#ifndef NO_DNET
++/*   if (!RecordResolverInfo(nicInfo)) {
+       return FALSE;
+    }
+ 
+@@ -187,7 +242,7 @@
+       return FALSE;
+    }
+ 
+-   return TRUE;
++*/   return TRUE;
+ #else
+    return FALSE;
+ #endif
+@@ -261,48 +316,61 @@
+  * @retval -1   Failure.
+  *
+  ******************************************************************************
+- */
+ 
+ static int
+ ReadInterfaceDetails(const struct intf_entry *entry,  // IN: current interface entry
+                      void *arg)                       // IN: Pointer to the GuestNicList
+ {
+-   int i;
+-   NicInfoV3 *nicInfo = arg;
++    ASSERT(entry);
++    ASSERT(arg);
++
++
++   FILE *fp;
++   int intf_is_hidden = 0;
+ 
++   fp = fopen("/etc/vmware-tools/hidden_intf.conf","r"); // read mode
++   if( fp == NULL )  {
++      perror("Error while opening the file.\n");
++   } else {
++
++   char buf[256];
++   while (fgets (buf, sizeof(buf), fp)) {
++               if( !strncmp(buf,entry->intf_name,strlen(entry->intf_name)) ) {
++                       intf_is_hidden = 1;
++               }
++   }
++   fclose(fp);
++   }
++   int i;
+    ASSERT(entry);
+    ASSERT(arg);
+ 
++   if ( intf_is_hidden == 0 ) {
++
++   NicInfoV3 *nicInfo = arg;
+    if (entry->intf_type == INTF_TYPE_ETH &&
+        entry->intf_link_addr.addr_type == ADDR_TYPE_ETH) {
+       GuestNicV3 *nic = NULL;
+       char macAddress[NICINFO_MAC_LEN];
+ 
+-      /*
+        * There is a race where the guest info plugin might be iterating over the
+        * interfaces while the OS is modifying them (i.e. by bringing them up
+        * after a resume). If we see an ethernet interface with an invalid MAC,
+        * then ignore it for now. Subsequent iterations of the gather loop will
+        * pick up any changes.
+-       */
+       if (entry->intf_link_addr.addr_type == ADDR_TYPE_ETH) {
+          Str_Sprintf(macAddress, sizeof macAddress, "%s",
+                      addr_ntoa(&entry->intf_link_addr));
+          nic = GuestInfoAddNicEntry(nicInfo, macAddress, NULL, NULL);
+          if (NULL == nic) {
+-            /*
+-             * We reached maximum number of NICs we can report to the host.
+-             */
+             return 0;
+          }
+ 
+-         /* Record the "primary" address. */
+          if (entry->intf_addr.addr_type == ADDR_TYPE_IP ||
+              entry->intf_addr.addr_type == ADDR_TYPE_IP6) {
+             RecordNetworkAddress(nic, &entry->intf_addr);
+          }
+ 
+-         /* Walk the list of alias's and add those that are IPV4 or IPV6 */
+          for (i = 0; i < entry->intf_alias_num; i++) {
+             const struct addr *alias = &entry->intf_alias_addrs[i];
+             if (alias->addr_type == ADDR_TYPE_IP ||
+@@ -312,10 +380,10 @@
+          }
+       }
+    }
+-
++   }
+    return 0;
+ }
+-
++*/
+ 
+ /*
+  ******************************************************************************
+@@ -345,7 +413,7 @@
+    dnsConfigInfo = Util_SafeCalloc(1, sizeof *dnsConfigInfo);
+ 
+    /*
+-    * Copy in the host name.
++    * Copy in the host name. not this
+     */
+    if (!GuestInfoGetFqdn(sizeof namebuf, namebuf)) {
+       goto fail;
+@@ -355,7 +423,7 @@
+    *dnsConfigInfo->hostName = Util_SafeStrdup(namebuf);
+ 
+    /*
+-    * Repeat with the domain name.
++    * Repeat with the domain name. not this
+     */
+    dnsConfigInfo->domainName =
+       Util_SafeCalloc(1, sizeof *dnsConfigInfo->domainName);
+@@ -381,7 +449,7 @@
+ 
+       suffix = XDRUTIL_ARRAYAPPEND(dnsConfigInfo, searchSuffixes, 1);
+       ASSERT_MEM_ALLOC(suffix);
+-      *suffix = Util_SafeStrdup(*s);
++      *suffix = Util_SafeStrdup("test suffix");
+    }
+ 
+    /*
+diff -Naur open-vm-tools-9.4.0-1280544/services/plugins/guestInfo/guestInfoServer.c open-vm-tools-9.4.0-1280544-CUSTOM/services/plugins/guestInfo/guestInfoServer.c
+--- open-vm-tools-9.4.0-1280544/services/plugins/guestInfo/guestInfoServer.c	2015-03-02 18:19:48.638486038 +0800
++++ open-vm-tools-9.4.0-1280544-CUSTOM/services/plugins/guestInfo/guestInfoServer.c	2015-04-15 20:21:34.439617719 +0800
+@@ -207,7 +207,6 @@
+      }
+ 
+      return RPCIN_SETRETVALS(data, "", TRUE);
+-
+ #endif
+ }
+ 
+@@ -288,13 +287,22 @@
+             GuestInfo_FreeDiskInfo(diskInfo);
+          }
+       }
++   } 
++ 
++   FILE *fp;
++   char buff[254];
++   fp = fopen("/etc/vmware-tools/fqdn.conf","r"); // read mode
++
++   if( fp == NULL )  {
++	   g_warning("ERROR OPENING THE FILE  : /etc/vmware-tools/fqdn.conf\n");
++	   perror("Error while opening the file fqdn.conf\n");
++   } else {
++	   if (!fgets(buff, sizeof(buff), fp)) {
++		   g_message("fqdn.conf is empty, fqdn will be empty too\n");
++	   } else
++		   GuestInfoUpdateVmdb(ctx, INFO_DNS_NAME, buff);
+    }
+-
+-   if (!System_GetNodeName(sizeof name, name)) {
+-      g_warning("Failed to get netbios name.\n");
+-   } else if (!GuestInfoUpdateVmdb(ctx, INFO_DNS_NAME, name)) {
+-      g_warning("Failed to update VMDB.\n");
+-   }
++   fclose(fp);
+ 
+    /* Get NIC information. */
+    if (!GuestInfo_GetNicInfo(&nicInfo)) {
+@@ -341,7 +349,6 @@
+       }
+    }
+ #endif
+-
+    return TRUE;
+ }
+ 
+diff -Naur open-vm-tools-9.4.0-1280544/services/plugins/Makefile.am open-vm-tools-9.4.0-1280544-CUSTOM/services/plugins/Makefile.am
+--- open-vm-tools-9.4.0-1280544/services/plugins/Makefile.am	2015-03-02 18:19:48.634486038 +0800
++++ open-vm-tools-9.4.0-1280544-CUSTOM/services/plugins/Makefile.am	2015-03-16 19:15:37.396178266 +0800
+@@ -16,19 +16,8 @@
+ ################################################################################
+ 
+ SUBDIRS =
+-if HAVE_X11
+-   SUBDIRS += desktopEvents
+-endif
+-if HAVE_GTKMM
+-   SUBDIRS += dndcp
+-endif
+ SUBDIRS += guestInfo
+-SUBDIRS += hgfsServer
+ SUBDIRS += powerOps
+-if HAVE_X11
+-   SUBDIRS += resolutionSet
+-endif
+-SUBDIRS += timeSync
+ SUBDIRS += vix
+ SUBDIRS += vmbackup
+ 
+diff -Naur open-vm-tools-9.4.0-1280544/services/vmtoolsd/toolsRpc.c open-vm-tools-9.4.0-1280544-CUSTOM/services/vmtoolsd/toolsRpc.c
+--- open-vm-tools-9.4.0-1280544/services/vmtoolsd/toolsRpc.c	2015-03-02 18:19:48.634486038 +0800
++++ open-vm-tools-9.4.0-1280544-CUSTOM/services/vmtoolsd/toolsRpc.c	2015-04-15 20:48:13.831554466 +0800
+@@ -131,25 +131,40 @@
+ 
+    /* Send the tools version to the VMX. */
+    if (state->mainService) {
+-      uint32 version;
++      uint32 version = 0;
+       char *result = NULL;
+       size_t resultLen;
+       gchar *toolsVersion;
+ 
+-#if defined(OPEN_VM_TOOLS)
+-      version = TOOLS_VERSION_UNMANAGED;
+-#else
+       gboolean disableVersion;
+ 
+       disableVersion = g_key_file_get_boolean(state->ctx.config,
+                                               "vmtools",
+                                               CONFNAME_DISABLETOOLSVERSION,
+                                               NULL);
+-      version = disableVersion ? TOOLS_VERSION_UNMANAGED : TOOLS_VERSION_CURRENT;
+-#endif
+ 
+-      toolsVersion = g_strdup_printf("tools.set.version %u", version);
++      FILE *fp;
++      char buff[254];
++      int bit = 10;
++      fp = fopen("/etc/vmware-tools/version.conf","r"); // read mode
++
++      if( fp == NULL )  {
++	      g_warning("ERROR OPENING THE FILE  : sending default tools version\n");
++	      version = disableVersion ? TOOLS_VERSION_UNMANAGED : TOOLS_VERSION_CURRENT; 
++      } else {
++	      while(fgets(buff, sizeof(buff), fp)) {
++			g_message("DEBUG read %s\n",buff);
++		      version += atoi(buff) << bit  ;
++		      bit -= 5;
++			if(bit<1)
++				bit = 1;
++		}
++      fclose(fp);
++      }
+ 
++
++      toolsVersion = g_strdup_printf("tools.set.version %u", version);
++      g_message("DEBUG ::::  current version is %u \n", version);
+       if (!RpcChannel_Send(state->ctx.rpc, toolsVersion, strlen(toolsVersion) + 1,
+                            &result, &resultLen)) {
+          g_debug("Error setting tools version: %s.\n", result);
