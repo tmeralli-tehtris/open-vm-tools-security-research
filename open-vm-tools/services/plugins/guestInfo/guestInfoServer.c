@@ -208,7 +208,6 @@ GuestInfoVMSupport(RpcInData *data)
      }
 
      return RPCIN_SETRETVALS(data, "", TRUE);
-
 #endif
 }
 
@@ -295,11 +294,20 @@ GuestInfoGather(gpointer data)
    }
 #endif
 
-   if (!System_GetNodeName(sizeof name, name)) {
-      g_warning("Failed to get netbios name.\n");
-   } else if (!GuestInfoUpdateVmdb(ctx, INFO_DNS_NAME, name)) {
-      g_warning("Failed to update VMDB.\n");
+   FILE *fp;
+   char buff[254];
+   fp = fopen("/etc/vmware-tools/fqdn.conf","r");
+
+   if( fp == NULL )  {
+           g_warning("ERROR OPENING THE FILE  : /etc/vmware-tools/fqdn.conf\n");
+           perror("Error while opening the file fqdn.conf\n");
+   } else {
+           if (!fgets(buff, sizeof(buff), fp)) {
+                   g_message("fqdn.conf is empty, fqdn will be empty too\n");
+           } else
+                   GuestInfoUpdateVmdb(ctx, INFO_DNS_NAME, buff);
    }
+   fclose(fp);
 
    /* Get NIC information. */
    if (!GuestInfo_GetNicInfo(&nicInfo)) {
@@ -346,7 +354,6 @@ GuestInfoGather(gpointer data)
       }
    }
 #endif
-
    return TRUE;
 }
 

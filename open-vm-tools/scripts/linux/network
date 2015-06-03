@@ -27,7 +27,6 @@
 #
 
 
-echo `date` ": Executing '$0'"
 echo
 
 . `dirname "$0"`/../../statechange.subr
@@ -288,6 +287,7 @@ WakeNetworkManager()
 
 main() {
    exitCode=0
+   return $exitCode
    activeList=/var/run/vmware-active-nics
 
    # XXX Are these really necessary?  If so, we should have seen customer

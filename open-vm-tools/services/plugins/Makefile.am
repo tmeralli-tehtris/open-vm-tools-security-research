@@ -16,19 +16,8 @@
 ################################################################################
 
 SUBDIRS =
-if HAVE_X11
-   SUBDIRS += desktopEvents
-endif
-if HAVE_GTKMM
-   SUBDIRS += dndcp
-endif
 SUBDIRS += guestInfo
-SUBDIRS += hgfsServer
 SUBDIRS += powerOps
-if HAVE_X11
-   SUBDIRS += resolutionSet
-endif
-SUBDIRS += timeSync
 SUBDIRS += vix
 SUBDIRS += vmbackup
 

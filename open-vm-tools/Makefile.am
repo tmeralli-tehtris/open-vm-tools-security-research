@@ -26,31 +26,16 @@ SUBDIRS =
 SUBDIRS += lib
 SUBDIRS += libvmtools
 SUBDIRS += libhgfs
-SUBDIRS += hgfsclient
-if BUILD_HGFSMOUNTER
-   SUBDIRS += hgfsmounter
-endif
 SUBDIRS += checkvm
 SUBDIRS += libguestlib
 SUBDIRS += rpctool
 SUBDIRS += scripts
 SUBDIRS += services
-SUBDIRS += toolbox
-if HAVE_X11
-   SUBDIRS += vmware-user-suid-wrapper
-endif
 if HAVE_FUSE
    SUBDIRS += vmblock-fuse
-endif
-if !LINUX
-   SUBDIRS += vmblockmounter
 endif
 SUBDIRS += xferlogs
 if ENABLE_TESTS
    SUBDIRS += tests
 endif
-if WITH_KERNEL_MODULES
-   SUBDIRS += modules
-endif
-SUBDIRS += docs
 

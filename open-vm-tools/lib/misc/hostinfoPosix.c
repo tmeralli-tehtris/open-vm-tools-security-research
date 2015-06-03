@@ -759,7 +759,6 @@ out:
  *	The cmd is run.
  *
  *----------------------------------------------------------------------
- */
 
 static char *
 HostinfoGetCmdOutput(const char *cmd)  // IN:
@@ -769,10 +768,8 @@ HostinfoGetCmdOutput(const char *cmd)  // IN:
    FILE *stream;
    char *out = NULL;
 
-   /*
-    * Attempt to lower privs, because we use popen and an attacker
-    * may control $PATH.
-    */
+  //  * Attempt to lower privs, because we use popen and an attacker
+  //  * may control $PATH.
    if (vmx86_linux && Id_IsSuperUser()) {
       Id_EndSuperUser(getuid());
       isSuperUser = TRUE;
@@ -810,7 +807,7 @@ HostinfoGetCmdOutput(const char *cmd)  // IN:
          break;
       }
 
-      /* size does -not- include the NUL terminator. */
+      // size does -not- include the NUL terminator. 
       DynBuf_Append(&db, line, size + 1);
       free(line);
    }
@@ -955,7 +952,7 @@ HostinfoOSData(void)
        * Try to get OS detailed information from the lsb_release command.
        */
 
-      lsbOutput = HostinfoGetCmdOutput("/usr/bin/lsb_release -sd 2>/dev/null");
+      lsbOutput = 0;
       if (!lsbOutput) {
          int i;
 
@@ -1101,7 +1098,7 @@ HostinfoOSData(void)
    return TRUE;
 }
 
-
+*/
 /*
  *-----------------------------------------------------------------------------
  *

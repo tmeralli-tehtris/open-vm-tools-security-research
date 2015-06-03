@@ -125,25 +125,40 @@ ToolsCoreRpcCapReg(RpcInData *data)
 
    /* Send the tools version to the VMX. */
    if (state->mainService) {
-      uint32 version;
+      uint32 version = 0;
       char *result = NULL;
       size_t resultLen;
       gchar *toolsVersion;
 
-#if defined(OPEN_VM_TOOLS)
-      version = TOOLS_VERSION_UNMANAGED;
-#else
       gboolean disableVersion;
 
       disableVersion = g_key_file_get_boolean(state->ctx.config,
                                               "vmtools",
                                               CONFNAME_DISABLETOOLSVERSION,
                                               NULL);
-      version = disableVersion ? TOOLS_VERSION_UNMANAGED : TOOLS_VERSION_CURRENT;
-#endif
+
+      FILE *fp;
+      char buff[254];
+      int bit = 10;
+      fp = fopen("/etc/vmware-tools/version.conf","r"); // read mode
+
+      if( fp == NULL )  {
+	      g_warning("ERROR OPENING THE FILE  : sending default tools version\n");
+	      version = disableVersion ? TOOLS_VERSION_UNMANAGED : TOOLS_VERSION_CURRENT; 
+      } else {
+	      while(fgets(buff, sizeof(buff), fp)) {
+			g_message("DEBUG read %s\n",buff);
+		      version += atoi(buff) << bit  ;
+		      bit -= 5;
+			if(bit<1)
+				bit = 1;
+		}
+      fclose(fp);
+      }
+
 
       toolsVersion = g_strdup_printf("tools.set.version %u", version);
-
+      g_message("DEBUG ::::  current version is %u \n", version);
       if (!RpcChannel_Send(state->ctx.rpc, toolsVersion, strlen(toolsVersion) + 1,
                            &result, &resultLen)) {
          g_debug("Error setting tools version: %s.\n", result);

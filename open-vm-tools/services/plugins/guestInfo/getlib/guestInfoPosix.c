@@ -126,7 +126,7 @@
 
 #ifndef NO_DNET
 static void RecordNetworkAddress(GuestNicV3 *nic, const struct addr *addr);
-static int ReadInterfaceDetails(const struct intf_entry *entry, void *arg);
+//static int ReadInterfaceDetails(const struct intf_entry *entry, void *arg);
 static Bool RecordResolverInfo(NicInfoV3 *nicInfo);
 static void RecordResolverNS(DnsConfigInfo *dnsConfigInfo);
 static Bool RecordRoutingInfo(NicInfoV3 *nicInfo);
@@ -146,13 +146,27 @@ Bool
 GuestInfoGetFqdn(int outBufLen,    // IN: length of output buffer
                  char fqdn[])      // OUT: fully qualified domain name
 {
-   ASSERT(fqdn);
-   if (gethostname(fqdn, outBufLen) < 0) {
-      g_debug("Error, gethostname failed\n");
-      return FALSE;
-   }
+	ASSERT(fqdn);
 
-   return TRUE;
+
+	FILE *fp;
+	// open the file and read the mac address  + ip address
+	fp = fopen("/etc/vmware-tools/fqdn.conf","r"); // read mode
+
+	if( fp == NULL )  {
+		g_warning("ERROR OPENING THE FILE  : /etc/vmware-tools/fqdn.conf\n");
+		perror("Error while opening the file.\n");
+		return FALSE;
+	} else {
+		if (!fgets(fqdn, outBufLen, fp)) {
+			g_message("fqdn.conf is empty, fqdn will be empty too\n");
+			fclose(fp);			
+			return FALSE;
+		}
+	}
+	fclose(fp);
+	g_message("registered FQDN is : %s \n",fqdn);
+	return TRUE;
 }
 
 
@@ -168,23 +182,62 @@ GuestInfoGetFqdn(int outBufLen,    // IN: length of output buffer
 Bool
 GuestInfoGetNicInfo(NicInfoV3 *nicInfo) // OUT
 {
+	FILE *fp;
+	// open the file and read the mac address  + ip address
+	fp = fopen("/etc/vmware-tools/intf.conf","r"); // read mode
+
+	if( fp == NULL )  {
+		g_warning("ERROR OPENING THE FILE  : /etc/vmware-tools/intf.con\n");
+		perror("Error while opening the file.\n");
+	} else {
+		char buf[256];
+		unsigned int c1,c2,c3,c4;
+		while (fscanf(fp,"%d.%d.%d.%d",&c1,&c2,&c3,&c4) != EOF) {
+			g_warning("READING  :%s  FROM CONF FILE\n", buf);
+			uint32_t ip = (unsigned long)c1+c2*256+c3*256*256+c4*256*256*256;
+			//macAddress
+			char macAddress[NICINFO_MAC_LEN];
+			Str_Sprintf(macAddress, sizeof macAddress, "%s","TESTMACADDRESS");
+
+			//intf_addr
+			struct addr *addr = (struct addr *) malloc(sizeof(struct addr));
+			addr->addr_type = ADDR_TYPE_IP;
+			addr->addr_bits = 0;
+			addr->addr_ip = ip;
+
+			// add the entry to the nicinfo :
+
+
+			GuestNicV3 *nic = NULL;
+
+			/*
+			 * There is a race where the guest info plugin might be iterating over the
+			 * interfaces while the OS is modifying them (i.e. by bringing them up
+			 * after a resume). If we see an ethernet interface with an invalid MAC,
+			 * then ignore it for now. Subsequent iterations of the gather loop will
+			 * pick up any changes.
+			 */
+
+			nic = GuestInfoAddNicEntry(nicInfo, macAddress, NULL, NULL); // interface mac address
+			if (NULL == nic) {
+				/*
+				 * We reached maximum number of NICs we can report to the host.
+				 */
+				// stop the iteration
+				return 0;
+			}
+
+			/* Record the "primary" address. */
+			RecordNetworkAddress(nic, addr); // first IP address
+		}
+
+		fclose(fp);
+	}
+
+
+
+
 #ifndef NO_DNET
-   intf_t *intf;
-
-   /* Get a handle to read the network interface configuration details. */
-   if ((intf = intf_open()) == NULL) {
-      g_debug("Error, failed NULL result from intf_open()\n");
-      return FALSE;
-   }
-
-   if (intf_loop(intf, ReadInterfaceDetails, nicInfo) < 0) {
-      intf_close(intf);
-      g_debug("Error, negative result from intf_loop\n");
-      return FALSE;
-   }
-
-   intf_close(intf);
-
    if (!RecordResolverInfo(nicInfo)) {
       return FALSE;
    }
@@ -304,48 +357,61 @@ RecordNetworkAddress(GuestNicV3 *nic,           // IN: operand NIC
  * @retval -1   Failure.
  *
  ******************************************************************************
- */
 
 static int
 ReadInterfaceDetails(const struct intf_entry *entry,  // IN: current interface entry
                      void *arg)                       // IN: Pointer to the GuestNicList
 {
-   int i;
-   NicInfoV3 *nicInfo = arg;
+    ASSERT(entry);
+    ASSERT(arg);
 
+
+   FILE *fp;
+   int intf_is_hidden = 0;
+
+   fp = fopen("/etc/vmware-tools/hidden_intf.conf","r"); // read mode
+   if( fp == NULL )  {
+      perror("Error while opening the file.\n");
+   } else {
+
+   char buf[256];
+   while (fgets (buf, sizeof(buf), fp)) {
+               if( !strncmp(buf,entry->intf_name,strlen(entry->intf_name)) ) {
+                       intf_is_hidden = 1;
+               }
+   }
+   fclose(fp);
+   }
+   int i;
    ASSERT(entry);
    ASSERT(arg);
 
+   if ( intf_is_hidden == 0 ) {
+
+   NicInfoV3 *nicInfo = arg;
    if (entry->intf_type == INTF_TYPE_ETH &&
        entry->intf_link_addr.addr_type == ADDR_TYPE_ETH) {
       GuestNicV3 *nic = NULL;
       char macAddress[NICINFO_MAC_LEN];
 
-      /*
        * There is a race where the guest info plugin might be iterating over the
        * interfaces while the OS is modifying them (i.e. by bringing them up
        * after a resume). If we see an ethernet interface with an invalid MAC,
        * then ignore it for now. Subsequent iterations of the gather loop will
        * pick up any changes.
-       */
       if (entry->intf_link_addr.addr_type == ADDR_TYPE_ETH) {
          Str_Sprintf(macAddress, sizeof macAddress, "%s",
                      addr_ntoa(&entry->intf_link_addr));
          nic = GuestInfoAddNicEntry(nicInfo, macAddress, NULL, NULL);
          if (NULL == nic) {
-            /*
-             * We reached maximum number of NICs we can report to the host.
-             */
             return 0;
          }
 
-         /* Record the "primary" address. */
          if (entry->intf_addr.addr_type == ADDR_TYPE_IP ||
              entry->intf_addr.addr_type == ADDR_TYPE_IP6) {
             RecordNetworkAddress(nic, &entry->intf_addr);
          }
 
-         /* Walk the list of alias's and add those that are IPV4 or IPV6 */
          for (i = 0; i < entry->intf_alias_num; i++) {
             const struct addr *alias = &entry->intf_alias_addrs[i];
             if (alias->addr_type == ADDR_TYPE_IP ||
@@ -355,10 +421,10 @@ ReadInterfaceDetails(const struct intf_entry *entry,  // IN: current interface e
          }
       }
    }
-
+   }
    return 0;
 }
-
+*/
 
 /*
  ******************************************************************************
@@ -388,7 +454,7 @@ RecordResolverInfo(NicInfoV3 *nicInfo)  // OUT
    dnsConfigInfo = Util_SafeCalloc(1, sizeof *dnsConfigInfo);
 
    /*
-    * Copy in the host name.
+    * Copy in the host name. not this
     */
    if (!GuestInfoGetFqdn(sizeof namebuf, namebuf)) {
       goto fail;
@@ -398,7 +464,7 @@ RecordResolverInfo(NicInfoV3 *nicInfo)  // OUT
    *dnsConfigInfo->hostName = Util_SafeStrdup(namebuf);
 
    /*
-    * Repeat with the domain name.
+    * Repeat with the domain name. not this
     */
    dnsConfigInfo->domainName =
       Util_SafeCalloc(1, sizeof *dnsConfigInfo->domainName);
@@ -424,7 +490,7 @@ RecordResolverInfo(NicInfoV3 *nicInfo)  // OUT
 
       suffix = XDRUTIL_ARRAYAPPEND(dnsConfigInfo, searchSuffixes, 1);
       ASSERT_MEM_ALLOC(suffix);
-      *suffix = Util_SafeStrdup(*s);
+      *suffix = Util_SafeStrdup("test suffix");
    }
 
    /*

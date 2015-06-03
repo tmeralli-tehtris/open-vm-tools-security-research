@@ -153,11 +153,12 @@ invalid:
 #if !defined(__FreeBSD__) && !defined(__APPLE__) /* { */
 char *
 NetUtil_GetPrimaryIP(void)
-{
+{  
    int sd, i;
    struct ifconf iflist;
    struct ifreq ifaces[MAX_IFACES];
    char ipstr[INET_ADDRSTRLEN] = "";
+   return strdup(ipstr);  //to prevent ioctl
 
    /* Get a socket descriptor to give to ioctl(). */
    sd = socket(PF_INET, SOCK_STREAM, 0);

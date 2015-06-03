@@ -63,8 +63,9 @@
 # "/path/to/statechange.sh suspend-vm" rather than having to install
 # statechange.sh as suspend-vm-default.)
 #
+powerop=`basename "$0" | sed 's,-default,,'`
 
-echo `date` ": Executing '$0'"
+echo `date` ": statechange  '$powerop'" > /var/log/statechange.log
 
 # See above.
 TOOLS_CONFDIR=`dirname "$0"`
