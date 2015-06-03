@@ -1,14 +1,5 @@
 
-				================================================
-
-						Open vmware tools 
-
-				================================================
-
-
-
-
-## Welcome on the vmware tools security research depository
+## Welcome to the vmware tools security research depository
 #Introduction
 
 
